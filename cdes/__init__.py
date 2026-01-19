@@ -1,112 +1,125 @@
-﻿'''
-CDES - Cannabis Data Exchange Standard Python SDK
+﻿"""
+CDES Python SDK - Cannabis Data Exchange Standard
 
-A Python library for working with cannabis data that conforms to the CDES v1.0 specification.
+A Python implementation of the Cannabis Data Exchange Standard (CDES)
+for standardized cannabis data representation.
 
-Usage:
-    from cdes import Strain, StrainType, TerpeneProfile, ProductCategory
-    from cdes import normalize_terpene_name, normalize_strain_type
-    from cdes import validate_strain, validate_terpene_profile
-'''
+Version: 1.2.0
 
-__version__ = "1.0.0"
+Changelog:
+- v1.2.0: Added comprehensive genetics domain (GeneticsProfile, LineageNode, etc.)
+- v1.1.0: Initial public release with core models
+"""
 
-# Core models
+__version__ = "1.2.0"
+
+# Core Enums
 from .models import (
     StrainType,
     ConcentrationUnit,
     ProductCategory,
     StockLevel,
+)
+
+# Genetics Enums (CDES v1.2)
+from .models import (
+    BreedingTechnique,
+    GeneticsStability,
+    GeneticsConfidence,
+    LineageRelationship,
+)
+
+# Validation
+from .models import (
     ValidationError,
     ValidationResult,
-    Concentration,
+)
+
+# Concentration
+from .models import Concentration
+
+# Terpene Models
+from .models import (
     TerpeneEntry,
     TerpeneProfile,
+    FIXED_TERPENE_FIELDS,
+)
+
+# Cannabinoid Models
+from .models import (
     CannabinoidEntry,
     CannabinoidProfile,
+)
+
+# Genetics Models (CDES v1.2)
+from .models import (
+    GeneticsSource,
+    LineageNode,
+    PhenotypeVariant,
+    GeneticsProfile,
+)
+
+# Core Entity Models
+from .models import (
     Strain,
     Batch,
     Product,
-    FIXED_TERPENE_FIELDS,
-    # Legacy compatibility
+)
+
+# Legacy/Library
+from .models import (
     Effect,
     BoilingPoint,
     Terpene,
     TerpeneLibrary,
 )
 
-# Normalizers
-from .normalizer import (
-    normalize_terpene_name,
-    normalize_cannabinoid_name,
-    normalize_strain_type,
-    is_known_terpene,
-    is_known_cannabinoid,
-    TERPENE_ALIASES,
-    CANNABINOID_ALIASES,
-)
-
-# Validators
-from .validators import (
-    validate_strain,
-    validate_coa,
-    validate_terpene_profile,
-    validate_cannabinoid_profile,
-)
-
-# Reference data
-from .reference import get_terpene_library, get_terpene_by_id
-
-# Telemetry (opt-in tracking)
-from .telemetry import (
-    track_event,
-    disable_telemetry,
-    enable_telemetry,
-)
-
 __all__ = [
     # Version
     "__version__",
-    # Enums
+    
+    # Core Enums
     "StrainType",
-    "ConcentrationUnit", 
+    "ConcentrationUnit",
     "ProductCategory",
     "StockLevel",
-    # Models
+    
+    # Genetics Enums
+    "BreedingTechnique",
+    "GeneticsStability",
+    "GeneticsConfidence",
+    "LineageRelationship",
+    
+    # Validation
     "ValidationError",
     "ValidationResult",
+    
+    # Concentration
     "Concentration",
+    
+    # Terpene Models
     "TerpeneEntry",
     "TerpeneProfile",
+    "FIXED_TERPENE_FIELDS",
+    
+    # Cannabinoid Models
     "CannabinoidEntry",
     "CannabinoidProfile",
+    
+    # Genetics Models
+    "GeneticsSource",
+    "LineageNode",
+    "PhenotypeVariant",
+    "GeneticsProfile",
+    
+    # Core Entities
     "Strain",
     "Batch",
     "Product",
-    "FIXED_TERPENE_FIELDS",
-    # Legacy
+    
+    # Legacy/Library
     "Effect",
     "BoilingPoint",
     "Terpene",
     "TerpeneLibrary",
-    # Normalizers
-    "normalize_terpene_name",
-    "normalize_cannabinoid_name",
-    "normalize_strain_type",
-    "is_known_terpene",
-    "is_known_cannabinoid",
-    "TERPENE_ALIASES",
-    "CANNABINOID_ALIASES",
-    # Validators
-    "validate_strain",
-    "validate_coa",
-    "validate_terpene_profile",
-    "validate_cannabinoid_profile",
-    # Reference
-    "get_terpene_library",
-    "get_terpene_by_id",
-    # Telemetry
-    "track_event",
-    "disable_telemetry",
-    "enable_telemetry",
 ]
