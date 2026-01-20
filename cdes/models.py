@@ -1087,3 +1087,337 @@ class TerpeneLibrary:
             if t.id == terpene_id:
                 return t
         return None
+
+
+# =============================================================================
+# GENETICS UTILITY FUNCTIONS (CDES v1.2.1)
+# =============================================================================
+
+import re
+
+def parse_strain_name(name: str) -> Dict[str, Any]:
+    """
+    Parse a strain name to extract phenotype number and base name.
+    
+    Examples:
+        "Tropical Teeth #2" -> {"base_name": "Tropical Teeth", "pheno_number": 2}
+        "Oz Kush F2 #15" -> {"base_name": "Oz Kush F2", "pheno_number": 15}
+        "Orange Sherbert 52" -> {"base_name": "Orange Sherbert", "pheno_number": 52}
+        "Blue Dream" -> {"base_name": "Blue Dream", "pheno_number": None}
+    
+    Args:
+        name: Full strain name potentially containing phenotype marker
+        
+    Returns:
+        Dictionary with base_name and pheno_number (None if no number found)
+    """
+    if not name:
+        return {"base_name": "", "pheno_number": None}
+    
+    name = name.strip()
+    
+    # Pattern 1: "#N" format (most common) - e.g., "Wino #4", "Tropical Teeth #2"
+    match = re.match(r'^(.+?)\s*#(\d+)$', name)
+    if match:
+        return {"base_name": match.group(1).strip(), "pheno_number": int(match.group(2))}
+    
+    # Pattern 2: Trailing number with no # - e.g., "Orange Sherbert 52"
+    # Only match if the number is at the end and preceded by a space
+    match = re.match(r'^(.+?)\s+(\d+)$', name)
+    if match:
+        base = match.group(1).strip()
+        num = int(match.group(2))
+        # Don't match if it looks like a generation marker (F1, F2, S1, BX1, etc.)
+        if not re.search(r'[FSBX]\s*$', base, re.IGNORECASE):
+            return {"base_name": base, "pheno_number": num}
+    
+    return {"base_name": name, "pheno_number": None}
+
+
+def parse_genetics_line(line: str) -> Dict[str, Any]:
+    """
+    Parse a genetics line in format "Strain Name    Parent1 x Parent2 x Parent3".
+    
+    Examples:
+        "Triangle Kush    Hindu Kush x Lemon Thai x Chemdawg"
+        "Tropical Teeth #2    Ice Cream Cake x Grape Teeth"
+        "Yuzu Sour    Orange Sherbert 52 x Oz Kush F2 #15 x Gastro Pop"
+    
+    Args:
+        line: A line containing strain name and genetics separated by whitespace
+        
+    Returns:
+        Dictionary with strain info and genetics profile data
+    """
+    if not line or not line.strip():
+        return {}
+    
+    # Split on multiple spaces (tab or 2+ spaces)
+    parts = re.split(r'\s{2,}|\t', line.strip(), maxsplit=1)
+    
+    if len(parts) < 2:
+        return {"strain_name": line.strip(), "genetics": None}
+    
+    strain_full_name = parts[0].strip()
+    genetics_str = parts[1].strip()
+    
+    # Parse the strain name for phenotype info
+    strain_info = parse_strain_name(strain_full_name)
+    
+    # Parse genetics (supports x, , or X as separator)
+    parents = []
+    for sep in ['  ', ' x ', ' X ']:
+        if sep in genetics_str:
+            parents = [p.strip() for p in genetics_str.split(sep)]
+            break
+    
+    if not parents:
+        parents = [genetics_str]
+    
+    return {
+        "strain_name": strain_full_name,
+        "base_name": strain_info["base_name"],
+        "pheno_number": strain_info["pheno_number"],
+        "genetics_string": genetics_str,
+        "parents": parents,
+        "parent_count": len(parents),
+    }
+
+
+def create_strain_with_genetics(
+    name: str,
+    genetics_string: str,
+    strain_type: StrainType = StrainType.UNKNOWN,
+    breeder: Optional[str] = None,
+) -> "Strain":
+    """
+    Create a Strain with full GeneticsProfile from name and genetics string.
+    
+    Handles complex parent strings and extracts phenotype info from name.
+    
+    Examples:
+        create_strain_with_genetics("Wino #4", "Cherry Punch x Grape Teeth")
+        create_strain_with_genetics("Yuzu Sour", "Orange Sherbert 52 x Oz Kush F2 #15 x Gastro Pop")
+    
+    Args:
+        name: Strain name (may include phenotype number)
+        genetics_string: Parent string like "Parent1 x Parent2 x Parent3"
+        strain_type: Optional strain type classification
+        breeder: Optional breeder name
+        
+    Returns:
+        Strain instance with populated genetics_profile
+    """
+    # Parse name for phenotype
+    name_info = parse_strain_name(name)
+    
+    # Create genetics profile from parent string
+    profile = GeneticsProfile.from_simple(genetics_string)
+    
+    if breeder:
+        profile.breeder = breeder
+    
+    # Create phenotype variant if pheno number found
+    if name_info["pheno_number"] is not None:
+        from datetime import date
+        pheno = PhenotypeVariant(
+            phenotype_name=name,
+            phenotype_number=name_info["pheno_number"],
+        )
+        profile.phenotypes.append(pheno)
+        profile.selected_phenotype = name
+    
+    return Strain(
+        name=name,
+        display_name=name,
+        type=strain_type,
+        breeder=breeder,
+        genetics=genetics_string,  # Keep simple string for backward compat
+        genetics_profile=profile,
+    )
+
+
+def bulk_parse_genetics(lines: List[str]) -> List[Dict[str, Any]]:
+    """
+    Parse multiple genetics lines (e.g., from a spreadsheet or text file).
+    
+    Args:
+        lines: List of lines in format "Strain    Parent1 x Parent2 x ..."
+        
+    Returns:
+        List of parsed genetics dictionaries
+    """
+    results = []
+    for line in lines:
+        if line.strip():
+            parsed = parse_genetics_line(line)
+            if parsed:
+                results.append(parsed)
+    return results
+
+
+# =============================================================================
+# GENETICS UTILITY FUNCTIONS (CDES v1.2.1)
+# =============================================================================
+
+import re
+
+def parse_strain_name(name: str) -> Dict[str, Any]:
+    """
+    Parse a strain name to extract phenotype number and base name.
+    
+    Examples:
+        "Tropical Teeth #2" -> {"base_name": "Tropical Teeth", "pheno_number": 2}
+        "Oz Kush F2 #15" -> {"base_name": "Oz Kush F2", "pheno_number": 15}
+        "Orange Sherbert 52" -> {"base_name": "Orange Sherbert", "pheno_number": 52}
+        "Blue Dream" -> {"base_name": "Blue Dream", "pheno_number": None}
+    
+    Args:
+        name: Full strain name potentially containing phenotype marker
+        
+    Returns:
+        Dictionary with base_name and pheno_number (None if no number found)
+    """
+    if not name:
+        return {"base_name": "", "pheno_number": None}
+    
+    name = name.strip()
+    
+    # Pattern 1: "#N" format (most common) - e.g., "Wino #4", "Tropical Teeth #2"
+    match = re.match(r'^(.+?)\s*#(\d+)$', name)
+    if match:
+        return {"base_name": match.group(1).strip(), "pheno_number": int(match.group(2))}
+    
+    # Pattern 2: Trailing number with no # - e.g., "Orange Sherbert 52"
+    # Only match if the number is at the end and preceded by a space
+    match = re.match(r'^(.+?)\s+(\d+)$', name)
+    if match:
+        base = match.group(1).strip()
+        num = int(match.group(2))
+        # Don't match if it looks like a generation marker (F1, F2, S1, BX1, etc.)
+        if not re.search(r'[FSBX]\s*$', base, re.IGNORECASE):
+            return {"base_name": base, "pheno_number": num}
+    
+    return {"base_name": name, "pheno_number": None}
+
+
+def parse_genetics_line(line: str) -> Dict[str, Any]:
+    """
+    Parse a genetics line in format "Strain Name    Parent1 x Parent2 x Parent3".
+    
+    Examples:
+        "Triangle Kush    Hindu Kush x Lemon Thai x Chemdawg"
+        "Tropical Teeth #2    Ice Cream Cake x Grape Teeth"
+        "Yuzu Sour    Orange Sherbert 52 x Oz Kush F2 #15 x Gastro Pop"
+    
+    Args:
+        line: A line containing strain name and genetics separated by whitespace
+        
+    Returns:
+        Dictionary with strain info and genetics profile data
+    """
+    if not line or not line.strip():
+        return {}
+    
+    # Split on multiple spaces (tab or 2+ spaces)
+    parts = re.split(r'\s{2,}|\t', line.strip(), maxsplit=1)
+    
+    if len(parts) < 2:
+        return {"strain_name": line.strip(), "genetics": None}
+    
+    strain_full_name = parts[0].strip()
+    genetics_str = parts[1].strip()
+    
+    # Parse the strain name for phenotype info
+    strain_info = parse_strain_name(strain_full_name)
+    
+    # Parse genetics (supports x, , or X as separator)
+    parents = []
+    for sep in ['  ', ' x ', ' X ']:
+        if sep in genetics_str:
+            parents = [p.strip() for p in genetics_str.split(sep)]
+            break
+    
+    if not parents:
+        parents = [genetics_str]
+    
+    return {
+        "strain_name": strain_full_name,
+        "base_name": strain_info["base_name"],
+        "pheno_number": strain_info["pheno_number"],
+        "genetics_string": genetics_str,
+        "parents": parents,
+        "parent_count": len(parents),
+    }
+
+
+def create_strain_with_genetics(
+    name: str,
+    genetics_string: str,
+    strain_type: StrainType = StrainType.UNKNOWN,
+    breeder: Optional[str] = None,
+) -> "Strain":
+    """
+    Create a Strain with full GeneticsProfile from name and genetics string.
+    
+    Handles complex parent strings and extracts phenotype info from name.
+    
+    Examples:
+        create_strain_with_genetics("Wino #4", "Cherry Punch x Grape Teeth")
+        create_strain_with_genetics("Yuzu Sour", "Orange Sherbert 52 x Oz Kush F2 #15 x Gastro Pop")
+    
+    Args:
+        name: Strain name (may include phenotype number)
+        genetics_string: Parent string like "Parent1 x Parent2 x Parent3"
+        strain_type: Optional strain type classification
+        breeder: Optional breeder name
+        
+    Returns:
+        Strain instance with populated genetics_profile
+    """
+    # Parse name for phenotype
+    name_info = parse_strain_name(name)
+    
+    # Create genetics profile from parent string
+    profile = GeneticsProfile.from_simple(genetics_string)
+    
+    if breeder:
+        profile.breeder = breeder
+    
+    # Create phenotype variant if pheno number found
+    if name_info["pheno_number"] is not None:
+        from datetime import date
+        pheno = PhenotypeVariant(
+            phenotype_name=name,
+            phenotype_number=name_info["pheno_number"],
+        )
+        profile.phenotypes.append(pheno)
+        profile.selected_phenotype = name
+    
+    return Strain(
+        name=name,
+        display_name=name,
+        type=strain_type,
+        breeder=breeder,
+        genetics=genetics_string,  # Keep simple string for backward compat
+        genetics_profile=profile,
+    )
+
+
+def bulk_parse_genetics(lines: List[str]) -> List[Dict[str, Any]]:
+    """
+    Parse multiple genetics lines (e.g., from a spreadsheet or text file).
+    
+    Args:
+        lines: List of lines in format "Strain    Parent1 x Parent2 x ..."
+        
+    Returns:
+        List of parsed genetics dictionaries
+    """
+    results = []
+    for line in lines:
+        if line.strip():
+            parsed = parse_genetics_line(line)
+            if parsed:
+                results.append(parsed)
+    return results
