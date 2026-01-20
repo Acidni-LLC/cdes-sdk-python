@@ -1,4 +1,4 @@
-﻿"""
+"""
 CDES Python SDK - Cannabis Data Exchange Standard
 
 A Python implementation of the Cannabis Data Exchange Standard (CDES)
@@ -12,7 +12,7 @@ Changelog:
 - v1.1.0: Initial public release with core models
 """
 
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 
 # Core Enums
 from .models import (

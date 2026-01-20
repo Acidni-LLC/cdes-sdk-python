@@ -1,4 +1,4 @@
-﻿"""
+"""
 CDES Data Models - Cannabis Data Exchange Standard Python SDK
 
 Dataclass models conforming to CDES JSON Schema specifications.
@@ -24,12 +24,21 @@ from enum import Enum
 # =============================================================================
 
 class StrainType(str, Enum):
-    """Cannabis strain types (CDES v1.0)."""
+    """Cannabis strain types (CDES v1.2).
+    
+    Includes traditional types plus botanical subspecies:
+    - Ruderalis: Auto-flowering subspecies, typically lower THC
+    - Landrace: Original, region-specific strains (e.g., Afghan Kush, Thai)
+    """
     INDICA = "indica"
     SATIVA = "sativa"
     HYBRID = "hybrid"
     HYBRID_INDICA = "hybrid_indica"
     HYBRID_SATIVA = "hybrid_sativa"
+    RUDERALIS = "ruderalis"
+    LANDRACE = "landrace"
+    LANDRACE_INDICA = "landrace_indica"
+    LANDRACE_SATIVA = "landrace_sativa"
     CBD = "cbd"
     UNKNOWN = "unknown"
 
