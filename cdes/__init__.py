@@ -1,18 +1,19 @@
-"""
+﻿'''
 CDES Python SDK - Cannabis Data Exchange Standard
 
 A Python implementation of the Cannabis Data Exchange Standard (CDES)
 for standardized cannabis data representation.
 
-Version: 1.2.1
+Version: 1.3.0
 
 Changelog:
+- v1.3.0: Added color reference support (get_terpene_color, get_cannabinoid_color, ColorRef)
 - v1.2.1: Added genetics parsing utilities (parse_strain_name, parse_genetics_line, create_strain_with_genetics)
 - v1.2.0: Added comprehensive genetics domain (GeneticsProfile, LineageNode, etc.)
 - v1.1.0: Initial public release with core models
-"""
+'''
 
-__version__ = "1.2.2"
+__version__ = "1.3.0"
 
 # Core Enums
 from .models import (
@@ -83,58 +84,80 @@ from .models import (
     bulk_parse_genetics,
 )
 
+# Color Reference (CDES v1.3.0)
+from .reference import (
+    ColorRef,
+    get_terpene_color,
+    get_terpene_colors,
+    get_cannabinoid_color,
+    get_cannabinoid_colors,
+    get_terpene_library,
+    get_cannabinoid_library,
+    clear_cache,
+)
+
 __all__ = [
     # Version
     "__version__",
-    
+
     # Core Enums
     "StrainType",
     "ConcentrationUnit",
     "ProductCategory",
     "StockLevel",
-    
+
     # Genetics Enums
     "BreedingTechnique",
     "GeneticsStability",
     "GeneticsConfidence",
     "LineageRelationship",
-    
+
     # Validation
     "ValidationError",
     "ValidationResult",
-    
+
     # Concentration
     "Concentration",
-    
+
     # Terpene Models
     "TerpeneEntry",
     "TerpeneProfile",
     "FIXED_TERPENE_FIELDS",
-    
+
     # Cannabinoid Models
     "CannabinoidEntry",
     "CannabinoidProfile",
-    
+
     # Genetics Models
     "GeneticsSource",
     "LineageNode",
     "PhenotypeVariant",
     "GeneticsProfile",
-    
+
     # Core Entities
     "Strain",
     "Batch",
     "Product",
-    
+
     # Legacy/Library
     "Effect",
     "BoilingPoint",
     "Terpene",
     "TerpeneLibrary",
-    
+
     # Genetics Utilities
     "parse_strain_name",
     "parse_genetics_line",
     "create_strain_with_genetics",
     "bulk_parse_genetics",
+    
+    # Color Reference (v1.3.0)
+    "ColorRef",
+    "get_terpene_color",
+    "get_terpene_colors",
+    "get_cannabinoid_color",
+    "get_cannabinoid_colors",
+    "get_terpene_library",
+    "get_cannabinoid_library",
+    "clear_cache",
 ]
